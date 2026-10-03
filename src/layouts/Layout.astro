@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import StoreLink from '../components/StoreLink.astro';
+import AnalyticsConsent from '../components/AnalyticsConsent.astro';
 import { APP_STORE, type FAQ } from '../data/site';
 interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; noindex?: boolean; article?: { title: string; date: Date } }
 const { title, description, faqs = [], home = false, noindex = false, article } = Astro.props;
@@ -36,6 +37,7 @@ const schema = [
   <StoreLink label="Get Milksy"/>
  </header>
  <main id="main"><slot/></main>
- <footer class="site-footer wrap"><div><a class="brand" href="/"><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>A little less to remember.</p></div><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/blog/">Articles</a><a href="mailto:davor@davor.se">Contact</a></nav><p class="legal">© {new Date().getFullYear()} Milksy. Apple and the Apple logo are trademarks of Apple Inc. App Store is a service mark of Apple Inc.</p></footer>
+ <footer class="site-footer wrap"><div><a class="brand" href="/"><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>A little less to remember.</p></div><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/blog/">Articles</a><a href="mailto:davor@davor.se">Contact</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>Analytics settings</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. Apple and the Apple logo are trademarks of Apple Inc. App Store is a service mark of Apple Inc.</p></footer>
+ <AnalyticsConsent/>
 </body>
 </html>

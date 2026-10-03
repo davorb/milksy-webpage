@@ -1,6 +1,6 @@
 # Milksy website
 
-Static Astro + TypeScript website for https://milksy.app. Plain HTML and CSS; no browser JavaScript, tracking scripts, remote fonts, or UI frameworks.
+Static Astro + TypeScript website for https://milksy.app. Static HTML and CSS with consent-based PostHog website analytics. No remote fonts or UI frameworks.
 
 ## Run and deploy
 
@@ -15,7 +15,7 @@ npm run preview
 
 Upload `dist/` to a static host. Configure the host to serve directory indexes and `404.html` for missing pages. Set the custom domain to `milksy.app`, enable HTTPS, and redirect alternate domains to it. No server runtime or secrets are required. The domain is already configured; an alternate origin can be built with `SITE_URL=https://example.com npm run build`. Root-path hosting is intentional. Subpath deployments need additional base-path work.
 
-`npm run build` runs TypeScript/Astro diagnostics, generates the site, and verifies metadata, JSON-LD syntax, canonical URLs, sitemap, robots rules, internal links, App Store links, draft exclusion, and the absence of browser JavaScript. `npm run verify` repeats the generated-output checks.
+`npm run build` runs TypeScript/Astro diagnostics, generates the site, and verifies metadata, JSON-LD syntax, canonical URLs, sitemap, robots rules, internal links, App Store links, draft exclusion, and the presence of the analytics entry script and consent controls. `npm run verify` repeats the generated-output checks.
 
 ## Pages
 
@@ -69,7 +69,11 @@ Unique titles/descriptions, canonical URLs, Open Graph and X cards, a 1200×630 
 
 ## Analytics
 
-No analytics are enabled. App Store links have `data-cta="app-store"` for an optional future click measurement integration. Choose a provider and update the website privacy explanation if analytics are added. Hosting access logs can provide visits/referrers depending on host configuration.
+PostHog JavaScript SDK uses EU Cloud project 292911 and its public write-only project token from `src/scripts/analytics.ts`. No secret or deployment environment variable is needed. The shared layout includes consent controls on every page; the SDK is dynamically loaded only after acceptance in production builds. Development mode does not send analytics. Local production previews can send analytics if accepted.
+
+Events: Standard PostHog page views, page engagement and automatic interaction capture, plus `app_store_clicked` for links with `data-cta="app-store"` (page path and link label). Uses PostHog’s recommended `2026-05-30` defaults. Session recording and surveys are disabled for this marketing site. No identify calls are made. PostHog uses local storage; a separate `milksy-analytics-consent` preference remembers Accept/Decline. Footer Analytics settings allows withdrawing consent and clears PostHog persistence. Without JavaScript the website works and analytics remain disabled. The website section of `/privacy/` explains this integration; the application's published policy is unchanged.
+
+After deploying, accept analytics and check PostHog Live events for a page view and an App Store click. Events from users who decline or block analytics will not appear. SDK/configuration reference: https://posthog.com/docs/libraries/js.
 
 ## Validation on 3 October 2026
 

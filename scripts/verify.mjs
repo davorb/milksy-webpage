@@ -35,7 +35,12 @@ for(const file of files){
    if(item['@type']==='FAQPage')for(const q of item.mainEntity){assert(html.includes(q.name.replace(/&/g,'&amp;')),`${file}: FAQ question is not visible`);assert(q.acceptedAnswer.text);}
   }
  }
- assert(!/<script(?![^>]*type="application\/ld\+json")/i.test(html),`${file}: unexpected client JavaScript`);
+ const clientScripts=[...html.matchAll(/<script(?![^>]*type="application\/ld\+json")([^>]*)>/gi)];
+ assert.equal(clientScripts.length,1,`${file}: expected one analytics entry script`);
+ const scriptSource=clientScripts[0][1].match(/src="([^"]+)"/)?.[1];
+ assert(scriptSource?.startsWith('/_astro/'),`${file}: analytics script must be a local bundle`);
+ assert(fs.existsSync(path.join('dist',scriptSource)),`${file}: analytics script missing`);
+ assert(html.includes('id="analytics-consent"') && html.includes('id="analytics-settings"'),`${file}: analytics controls missing`);
  assert(!html.includes('Writing a Milksy article'),`${file}: draft leaked`);
 }
 const sitemap=fs.readFileSync('dist/sitemap.xml','utf8');const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]);
@@ -43,5 +48,5 @@ assert.equal(urls.length,files.length-1,'Sitemap should include all pages except
 for(const url of urls){assert(url.startsWith(origin+'/'));const target=path.join('dist',new URL(url).pathname,'index.html');assert(fs.existsSync(target),`Sitemap route missing: ${url}`);}
 const robots=fs.readFileSync('dist/robots.txt','utf8');assert(robots.includes('User-agent: OAI-SearchBot\nAllow: /'));assert(robots.includes('User-agent: *\nAllow: /'));assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`));
 assert(fs.readFileSync('dist/rss.xml','utf8').includes('<rss'));
-assert.equal(fs.readdirSync('dist',{recursive:true}).filter(file=>file.endsWith('.js')).length,0,'No client JS bundle expected');
-console.log(`Verified ${files.length} HTML pages, ${urls.length} sitemap URLs, ${appLinks} App Store links, unique metadata, JSON-LD, internal links, draft exclusion and zero client JS.`);
+assert(fs.readdirSync('dist',{recursive:true}).some(file=>file.endsWith('.js')), 'Analytics bundles missing');
+console.log(`Verified ${files.length} HTML pages, ${urls.length} sitemap URLs, ${appLinks} App Store links, unique metadata, JSON-LD, internal links, draft exclusion and analytics entry scripts.`);
