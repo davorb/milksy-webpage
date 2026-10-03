@@ -22,7 +22,7 @@ for(const file of files){
   if(ref.startsWith('mailto:'))continue;
   if(ref.startsWith('#')){assert(ids.has(ref.slice(1)),`${file}: broken fragment ${ref}`);continue;}
   const url=new URL(ref,origin+route);
-  if(url.hostname==='apps.apple.com'){assert.equal(url.href,app,`${file}: wrong App Store link`);appLinks++;}
+  if(url.hostname==='apps.apple.com'){const allowed=[app,'https://apps.apple.com/us/app/nara-baby-pregnancy-tracker/id1444639029','https://apps.apple.com/us/app/huckleberry-baby-tracker/id1169136078','https://apps.apple.com/us/app/baby-tracker-newborn-log/id779656557'];assert(allowed.includes(url.href),`${file}: unknown App Store link`);if(url.href===app)appLinks++;}
   if(url.origin!==origin)continue;
   let target=path.join('dist',decodeURIComponent(url.pathname));
   if(fs.existsSync(target)&&fs.statSync(target).isDirectory())target=path.join(target,'index.html');
@@ -42,6 +42,24 @@ for(const file of files){
  assert(fs.existsSync(path.join('dist',scriptSource)),`${file}: analytics script missing`);
  assert(html.includes('id="analytics-consent"') && html.includes('id="analytics-settings"'),`${file}: analytics controls missing`);
  assert(!html.includes('Writing a Milksy article'),`${file}: draft leaked`);
+}
+// Comparison content must stay crawlable and linked as new competitors are added.
+const comparisonFiles=files.filter(file=>file.startsWith('compare/'));
+assert(comparisonFiles.length>=4,'Comparison hub and three detail pages missing');
+for(const file of comparisonFiles){
+ const html=fs.readFileSync(path.join('dist',file),'utf8');
+ assert(html.includes('Last updated:') && /<time datetime="\d{4}-\d{2}-\d{2}">/.test(html),`${file}: visible review date missing`);
+ assert(html.includes('<table') && html.includes('<caption'),`${file}: static comparison table missing`);
+ assert(html.includes('id="sources"'),`${file}: visible sources missing`);
+ const schema=JSON.parse(html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/s)[1]);
+ assert(schema.some(item=>item['@type']==='BreadcrumbList'),`${file}: breadcrumbs missing`);
+ assert(schema.some(item=>item['@type']==='FAQPage'),`${file}: FAQ schema missing`);
+ assert(schema.some(item=>item['@type']===(file==='compare/index.html'?'CollectionPage':'WebPage')),`${file}: page schema missing`);
+ for(const target of comparisonFiles){
+  if(target===file)continue;
+  const route='/'+target.replace(/index\.html$/,'');
+  assert(html.includes(`href="${route}"`),`${file}: related comparison missing: ${route}`);
+ }
 }
 const sitemap=fs.readFileSync('dist/sitemap.xml','utf8');const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]);
 assert.equal(urls.length,files.length-1,'Sitemap should include all pages except 404');

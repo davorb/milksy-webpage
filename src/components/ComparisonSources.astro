@@ -1,0 +1,12 @@
+---
+import { sources, reviewedOn, reviewedLabel, type SourceId } from '../data/comparisons';
+interface Props { ids: SourceId[] }
+const { ids } = Astro.props;
+---
+<section class="comparison-sources" id="sources">
+ <h2>Sources and how we compare</h2>
+ <p>Last updated: <time datetime={reviewedOn}>{reviewedLabel}</time>. We make Milksy. Competitor facts come from the official pages below; Milksy details come from its current implementation. This is a comparison of documented features, not a timed usability or sync test. “Ease of logging” and “Overall complexity” are our assessment.</p>
+ <p>Prices are the US listing or website figures shown when checked, in USD. Offers, taxes, eligibility and Android pricing can differ. A free download does not promise free access to every feature. Check the app’s purchase screen before paying. Unconfirmed details are marked in the table.</p>
+ <ul>{ids.map(id => <li><a href={sources[id].url}>{sources[id].label}</a></li>)}</ul>
+ <p>For Milksy’s storage and sharing details, see <a href="/privacy/">privacy</a> and <a href="/baby-tracker-for-couples/">family sharing</a>. Compare interfaces using the real Milksy screen on this page and each competitor’s official store screenshots.</p>
+</section>

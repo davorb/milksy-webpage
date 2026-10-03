@@ -1,0 +1,13 @@
+---
+import { criteria, appNames, type AppId } from '../data/comparisons';
+interface Props { apps: AppId[]; caption: string }
+const { apps, caption } = Astro.props;
+---
+<table class="comparison-table" role="table">
+ <caption>{caption}</caption>
+ <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">What matters</th>{apps.map(app => <th scope="col" role="columnheader" id={`app-${app}`}>{appNames[app]}</th>)}</tr></thead>
+ <tbody role="rowgroup">{criteria.map((row, index) => <tr role="row">
+  <th scope="row" role="rowheader" id={`criterion-${index}`}>{row.label}{row.subjective && <small>Our assessment</small>}</th>
+  {apps.map(app => <td role="cell" headers={`criterion-${index} app-${app}`}><span class="mobile-app-label" aria-hidden="true">{appNames[app]}</span><span>{row.values[app]}</span></td>)}
+ </tr>)}</tbody>
+</table>

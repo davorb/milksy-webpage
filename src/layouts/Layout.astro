@@ -3,11 +3,12 @@ import '../styles/global.css';
 import StoreLink from '../components/StoreLink.astro';
 import AnalyticsConsent from '../components/AnalyticsConsent.astro';
 import { APP_STORE, type FAQ } from '../data/site';
-interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; noindex?: boolean; article?: { title: string; date: Date } }
-const { title, description, faqs = [], home = false, noindex = false, article } = Astro.props;
+interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; noindex?: boolean; article?: { title: string; date: Date }; structuredData?: Record<string, unknown>[] }
+const { title, description, faqs = [], home = false, noindex = false, article, structuredData = [] } = Astro.props;
 const origin = Astro.site!;
 const canonical = new URL(noindex ? "/404.html" : Astro.url.pathname, origin).href;
 const schema = [
+ ...structuredData,
  { '@context': 'https://schema.org', '@type': 'WebSite', '@id': new URL('/#website', origin).href, name: 'Milksy', url: origin.href, description: 'Milksy is an iPhone baby tracker for breastfeeding, bottle feeds and diaper changes.', inLanguage: 'en' },
  ...(home ? [{ '@context': 'https://schema.org', '@type': ['MobileApplication', 'SoftwareApplication'], '@id': new URL('/#app', origin).href, name: 'Milksy', description, operatingSystem: 'iOS 26.5 or later; iPadOS 26.5 or later', applicationCategory: 'LifestyleApplication', url: origin.href, installUrl: APP_STORE, downloadUrl: APP_STORE, image: new URL('/app-icon.png', origin).href, sameAs: [APP_STORE] }] : []),
  ...(faqs.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map(faq => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })) }] : []),
@@ -33,11 +34,11 @@ const schema = [
  <a class="skip-link" href="#main">Skip to content</a>
  <header class="site-header wrap">
   <a class="brand" href="/" aria-label="Milksy home"><img src="/app-icon-small.webp" width="38" height="38" alt=""/>Milksy</a>
-  <nav aria-label="Main navigation"><a href="/#features">Features</a><a href="/baby-tracker-for-couples/">For two</a><a href="/about/">About</a></nav>
+  <nav aria-label="Main navigation"><a href="/#features">Features</a><a href="/baby-tracker-for-couples/">For two</a><a href="/compare/">Compare</a><a href="/about/">About</a></nav>
   <StoreLink label="Get Milksy"/>
  </header>
  <main id="main"><slot/></main>
- <footer class="site-footer wrap"><div><a class="brand" href="/"><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>A little less to remember.</p></div><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/blog/">Articles</a><a href="mailto:davor@davor.se">Contact</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>Analytics settings</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. Apple and the Apple logo are trademarks of Apple Inc. App Store is a service mark of Apple Inc.</p></footer>
+ <footer class="site-footer wrap"><div><a class="brand" href="/"><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>A little less to remember.</p></div><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/blog/">Articles</a><a href="/compare/">Compare apps</a><a href="mailto:davor@davor.se">Contact</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>Analytics settings</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. Apple and the Apple logo are trademarks of Apple Inc. App Store is a service mark of Apple Inc.</p></footer>
  <AnalyticsConsent/>
 </body>
 </html>

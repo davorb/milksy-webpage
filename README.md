@@ -98,3 +98,28 @@ The included `.github/workflows/pages.yml` builds and verifies the site with Nod
 Future updates: commit changes and push to `main`; the workflow rebuilds and deploys automatically.
 
 GitHub references: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages and https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site.
+
+## Comparison pages
+
+- `/compare/`
+- `/compare/milksy-vs-nara-baby/`
+- `/compare/milksy-vs-huckleberry/`
+- `/compare/milksy-vs-baby-tracker/`
+
+The comparison hub and individual pages are static Astro output. `src/data/comparisons.ts` contains the app identifiers, common criteria, official source links, review date and individually written narratives. `ComparisonTable.astro` shares factual criteria, while each comparison has its own summary, sections, parent scenarios and FAQ. The same semantic table becomes labeled criterion cards below 680px; no client JavaScript is required for comparisons or FAQ interactions. Real Milksy screenshots use the existing responsive AVIF/WebP pipeline. Competitor visuals are linked to their official store screenshots rather than reproduced or invented.
+
+To add a competitor, extend `AppId`, `appNames`, `allApps`, the criteria values, `sources` and `comparisons`. The detail route, hub links and sitemap derive from these records. Add any new App Store URL to the narrow allowlist in `scripts/verify.mjs`. Recheck all existing prices and relevant source facts, then update `reviewedOn` and `reviewedLabel`. Do not update the review date merely because a build ran. Narrative sections should address that app's actual trade-offs rather than replace names in another comparison.
+
+Each comparison has unique title/description, canonical and social metadata, a visible reviewed date, FAQPage and BreadcrumbList JSON-LD. The hub uses CollectionPage with an ItemList of comparison links; details use WebPage with source citations and software subjects. No ratings, review scores, prices in structured offers, or rich-result eligibility promises are added.
+
+### Research notes — 3 October 2026
+
+Official references are linked visibly on each page and centrally in `src/data/comparisons.ts`. The comparisons disclose that Milksy publishes them. Logging ease and complexity are editorial assessments; no measured speed or reliability comparison is claimed. Milksy's implementation and listing copy were checked locally for tracking, sharing, storage, ads and feature scope.
+
+- Nara's US iOS listing shows monthly $9.99 and lifetime $69.99 purchases. Its Android description still says free and ad-free. This discrepancy is disclosed. **Manual check:** exact current paywall, trial, lifetime eligibility, any retained free access, and current advertising experience. No effective subscription-change date is claimed.
+- Huckleberry's official pricing page shows a free tracker and annual-billing equivalents of $5.74/month for Plus and $9.99/month for Premium. Annual equivalents are labeled explicitly. It documents same-account caregiver sharing. **Manual check:** local checkout totals, monthly billing offers, and ads; no confirmed ad-free claim is made.
+- Baby Tracker means Nighp's app, US iOS ID 779656557. Its current listing describes free core tracking, advertising, Remove Ads $4.99, Plus monthly $5.99 and yearly $49.99, with optional What’s Next cues and existing purchases remaining valid. **Manual check:** exact current account/sync setup, Android entitlements and purchase unlocks. The older public FAQ is not used as current sync instructions.
+- Regional pricing and feature parity should be checked on the actual caregiver devices. Store listings confirm availability, not that every feature or purchase behaves identically across platforms.
+- Milksy's live store price could not be independently confirmed, so the table links users to the current listing rather than inventing a price. No competitor import is promised.
+
+Run `npm run build` to check all HTML, unique metadata, internal links, JSON-LD and sitemap coverage. Browser QA results and mobile/desktop screenshots are saved under `qa/compare-*` and `qa/comparison-browser-checks.json`. Local browser timing is diagnostic only; it is not field Core Web Vitals evidence.

@@ -1,0 +1,42 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AppScreenshot from '../../components/AppScreenshot.astro';
+import StoreLink from '../../components/StoreLink.astro';
+import FAQ from '../../components/FAQ.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+import ComparisonSources from '../../components/ComparisonSources.astro';
+import { comparisons, appNames, sources, reviewedOn, reviewedLabel, type Comparison } from '../../data/comparisons';
+export function getStaticPaths() { return comparisons.map(page => ({ params: { slug: page.slug }, props: { page } })); }
+interface Props { page: Comparison }
+const { page } = Astro.props;
+const name = appNames[page.competitor];
+const canonical = new URL(`/compare/${page.slug}/`, Astro.site!).href;
+const schema = [
+ { '@context': 'https://schema.org', '@type': 'WebPage', '@id': `${canonical}#page`, name: `Milksy vs ${name}`, description: page.description, url: canonical, dateModified: reviewedOn, isPartOf: { '@id': new URL('/#website', Astro.site!).href }, about: [{ '@type': 'SoftwareApplication', name: 'Milksy' }, { '@type': 'SoftwareApplication', name }], publisher: { '@type': 'Organization', name: 'Milksy' }, citation: page.sources.map(id => sources[id].url) },
+ { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Milksy', item: Astro.site!.href }, { '@type': 'ListItem', position: 2, name: 'Compare', item: new URL('/compare/', Astro.site!).href }, { '@type': 'ListItem', position: 3, name: `Milksy vs ${name}`, item: canonical }] },
+];
+---
+<Layout title={page.title} description={page.description} faqs={page.faqs} structuredData={schema}>
+ <section class="comparison-hero landing-hero">
+  <div class="wrap">
+   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Milksy</a> <span aria-hidden="true"> / </span> <a href="/compare/">Compare</a> <span aria-hidden="true"> / </span> {name}</nav>
+   <p class="eyebrow">{page.angle}</p><h1>Milksy vs {name}</h1>
+   <p class="lead">{page.summary}</p>
+   <p class="comparison-date">Last updated: <time datetime={reviewedOn}>{reviewedLabel}</time> · By Milksy · <a href="#sources">Sources & method</a></p>
+  </div>
+ </section>
+ <div class="comparison-body wrap">
+  <nav class="comparison-jump" aria-label="On this page"><a href="#comparison">Features & pricing</a><a href="#differences">Key differences</a><a href="#family-fit">Which fits?</a><a href="#questions">FAQ</a></nav>
+  <section class="comparison-visual glass">
+   <figure><AppScreenshot screen={page.screen} alt={page.alt}/><figcaption>Actual Milksy screen</figcaption></figure>
+   <div><h2>{page.visualHeading}</h2><p>{page.visualText}</p><a class="text-link" href={sources[page.competitor].url}>See {name}’s official screenshots <span aria-hidden="true">↗</span></a></div>
+  </section>
+  <section id="comparison"><h2>Milksy and {name}, side by side</h2><p>Start with the features you need. A longer list only helps if you will use it.</p><ComparisonTable apps={['milksy', page.competitor]} caption={`Documented features, pricing and trade-offs: Milksy vs ${name}`}/><p class="small-note">USD prices checked on {reviewedLabel}. See <a href="#sources">sources and qualifications</a>. Interface assessments are subjective.</p></section>
+  <div class="comparison-prose">{page.sections.map((section, index) => <section id={index === 0 ? "differences" : undefined}><h2>{section.heading}</h2>{section.paragraphs.map(paragraph => <p>{paragraph}</p>)}</section>)}</div>
+  <section id="family-fit"><h2>Which fits your family?</h2><div class="comparison-cards">{page.choices.map(choice => <div class="glass comparison-card"><h3>{choice.heading}</h3><p>{choice.text}</p></div>)}</div></section>
+  <section class="comparison-prose" id="questions"><h2>Useful questions</h2><FAQ items={page.faqs}/></section>
+  <aside class="comparison-related" aria-label="Related comparisons and features"><h2>Keep comparing</h2><ul><li><a href="/compare/">All four baby tracking apps compared</a></li>{comparisons.filter(item => item.slug !== page.slug).map(item => <li><a href={`/compare/${item.slug}/`}>Milksy vs {appNames[item.competitor]}</a></li>)}</ul><h3>See how Milksy works</h3><ul>{page.relatedFeatures.map(feature => <li><a href={`/${feature.slug}/`}>{feature.label}</a></li>)}</ul></aside>
+  <ComparisonSources ids={page.sources}/>
+  <section class="closing glass"><h2>Track the useful stuff.<br/>Then get on with your day.</h2><p>Milksy is for parents who want to track the useful stuff without turning baby tracking into another job. If that sounds like you, try its daily timeline on iPhone or iPad.</p><StoreLink label="See Milksy on the App Store"/></section>
+ </div>
+</Layout>

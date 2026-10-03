@@ -1,0 +1,39 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AppScreenshot from '../../components/AppScreenshot.astro';
+import StoreLink from '../../components/StoreLink.astro';
+import FAQ from '../../components/FAQ.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+import ComparisonSources from '../../components/ComparisonSources.astro';
+import { allApps, comparisons, appNames, sources, reviewedOn, reviewedLabel, type SourceId } from '../../data/comparisons';
+const title = 'Compare Baby Tracking Apps: Milksy, Nara, Huckleberry & Baby Tracker';
+const description = 'Find a baby tracker that fits your family. Compare feeds, sleep, growth, caregiver sharing and pricing across Milksy, Nara Baby, Huckleberry and Baby Tracker.';
+const faqs = [
+ { question: 'What is the best baby tracker app?', answer: 'There is no single best choice for every family. Start with your devices, sharing needs and the records you want. Milksy focuses on a daily care timeline; Nara includes parent journals; Huckleberry adds paid sleep guidance; Baby Tracker offers detailed charts and reports.' },
+ { question: 'How do I choose a simple baby tracker app?', answer: 'Try logging a bottle, timing a nursing session and correcting an earlier entry. Look for the details you use every day without assuming that more features always mean more work. Nara can hide unused activities, and other apps offer shortcuts.' },
+ { question: 'Which baby feeding tracker works for couples?', answer: 'All four apps document caregiver or multi-device sharing. Milksy uses iCloud invitations, Nara supports caregiver invitations, Huckleberry shares an account login, and Baby Tracker uses sync groups. Test the setup on both parents’ devices before relying on it.' },
+];
+const canonical = new URL('/compare/', Astro.site!).href;
+const schema = [
+ { '@context': 'https://schema.org', '@type': 'CollectionPage', '@id': `${canonical}#page`, name: title, description, url: canonical, dateModified: reviewedOn, isPartOf: { '@id': new URL('/#website', Astro.site!).href }, mainEntity: { '@type': 'ItemList', itemListElement: comparisons.map((page, index) => ({ '@type': 'ListItem', position: index + 1, name: `Milksy vs ${appNames[page.competitor]}`, url: new URL(`/compare/${page.slug}/`, Astro.site!).href })) } },
+ { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Milksy', item: Astro.site!.href }, { '@type': 'ListItem', position: 2, name: 'Compare', item: canonical }] },
+];
+---
+<Layout title={title} description={description} faqs={faqs} structuredData={schema}>
+ <section class="comparison-hero landing-hero"><div class="wrap"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Milksy</a> <span aria-hidden="true"> / </span> Compare</nav><p class="eyebrow">A useful log starts with the right fit</p><h1>Which baby tracker<br/>fits your day?</h1><p class="lead">Milksy, Nara Baby, Huckleberry and Baby Tracker all record everyday care. The best baby tracker app for your family depends on your phones, the details you need and how much guidance you want.</p><p class="comparison-date">Last updated: <time datetime={reviewedOn}>{reviewedLabel}</time> · By Milksy · <a href="#sources">Sources & method</a></p></div></section>
+ <div class="comparison-body wrap">
+  <nav class="comparison-jump" aria-label="On this page"><a href="#comparison">Features & pricing</a><a href="#family-fit">Which fits?</a><a href="#questions">FAQ</a></nav>
+  <section id="comparison"><h2>The everyday details, compared</h2><p>We make Milksy, so this guide explains our perspective and the places another app may be a better choice. Features below are documented; ease and complexity are our assessment. This is Baby Tracker by Nighp Software.</p><ComparisonTable apps={allApps} caption="Baby tracking apps: features, sharing, platforms and pricing"/><p class="small-note">Prices are in USD, checked on {reviewedLabel}. Check current local purchase terms. <a href="#sources">Read the sources and qualifications</a>.</p></section>
+  <section id="family-fit"><h2>Different apps, different priorities</h2><div class="comparison-cards overview-cards">
+   <div class="glass comparison-card"><h3>Milksy: the daily handover</h3><p>For parents on iPhone or iPad who want a focused timeline, short care entries and iCloud sharing. No Android version or growth measurement charts.</p><a href="/baby-feeding-tracker/">Explore Milksy’s feeding log →</a></div>
+   <div class="glass comparison-card"><h3>Nara: baby and parent together</h3><p>For families who want pregnancy and postpartum journals beside baby activity and growth records. Unused activities can be hidden.</p><a href="/compare/milksy-vs-nara-baby/">Milksy vs Nara Baby →</a></div>
+   <div class="glass comparison-card"><h3>Huckleberry: tracking with guidance</h3><p>For parents who want free basic tracking, with the option to pay for sleep predictions and personalized plans.</p><a href="/compare/milksy-vs-huckleberry/">Milksy vs Huckleberry →</a></div>
+   <div class="glass comparison-card"><h3>Baby Tracker: detail and reports</h3><p>For families who want measurement charts and PDF reports alongside care logs. Core tracking is free; ads and paid extras deserve a look.</p><a href="/compare/milksy-vs-baby-tracker/">Milksy vs Baby Tracker →</a></div>
+  </div></section>
+  <section class="comparison-visual glass"><figure><AppScreenshot screen="timeline" alt="Milksy Today timeline with timed bottle and breastfeeding entries"/><figcaption>Actual Milksy screen</figcaption></figure><div><h2>Choose by a real handover</h2><p>Log a feed, change its time, then have your partner find it on their phone. That small trial tells you more about fit than a long feature list.</p><p>If you need a baby feeding tracker for couples, start with <a href="/baby-tracker-for-couples/">how Milksy shares a timeline</a>. If one parent uses Android, consider one of the other apps here.</p></div></section>
+  <section class="comparison-prose" id="questions"><h2>Useful questions</h2><FAQ items={faqs}/></section>
+  <aside class="comparison-related" aria-label="Milksy features"><h2>The details behind Milksy</h2><ul><li><a href="/breastfeeding-tracker/">Left and right breastfeeding timer</a></li><li><a href="/bottle-feeding-tracker/">Bottle amounts and feeding history</a></li><li><a href="/diaper-tracker/">Diaper tracking</a></li><li><a href="/baby-tracker-for-couples/">Shared tracking for parents</a></li></ul></aside>
+  <ComparisonSources ids={Object.keys(sources) as SourceId[]}/>
+  <section class="closing glass"><h2>A little less to remember.</h2><p>Milksy is for parents who want to track the useful stuff without turning baby tracking into another job. See whether its daily timeline feels right for you.</p><StoreLink label="See Milksy on the App Store"/></section>
+ </div>
+</Layout>
