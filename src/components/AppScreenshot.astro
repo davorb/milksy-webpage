@@ -1,0 +1,16 @@
+---
+import { Picture } from 'astro:assets';
+import today from '../assets/today.png';
+import timeline from '../assets/timeline.png';
+import trends from '../assets/trends.png';
+import breast from '../assets/breast.png';
+import bottle from '../assets/bottle.png';
+import diapers from '../assets/diapers.png';
+const images = { today, timeline, trends, breast, bottle, diapers };
+interface Props { screen: keyof typeof images; alt: string; eager?: boolean; class?: string }
+const { screen, alt, eager = false, class: className } = Astro.props;
+const sizes = className === "secondary-screen" ? "(max-width:680px) 193px, (max-width:900px) 190px, 228px" : className === "primary-screen" ? "(max-width:680px) 235px, (max-width:900px) 220px, 263px" : "(max-width:680px) 245px, 275px";
+---
+<div class:list={['app-screen', className]}>
+ <Picture src={images[screen]} formats={['avif','webp']} width={660} widths={[320,480,660]} sizes={sizes} alt={alt} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" />
+</div>

@@ -1,0 +1,8 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { publishedArticles } from '../../data/articles';
+const posts = await publishedArticles();
+---
+<Layout title="Milksy Articles – Notes on the App & Baby Tracking" description="Read Milksy feature notes and practical articles about keeping a baby activity log. New articles will appear here when published.">
+ <section class="article-body"><p class="eyebrow">From Milksy</p><h1>Notes, when there’s something useful to say.</h1><p>Feature notes and practical articles about baby tracking.</p>{posts.length ? <ul class="article-list">{posts.map(post => <li><h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2><p>{post.data.description}</p><time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString('en', { timeZone: 'UTC', year:'numeric', month:'long', day:'numeric' })}</time></li>)}</ul> : <div class="empty-state"><h2>No articles yet.</h2><p>For now, get to know the <a href="/baby-feeding-tracker/">feeding log</a> or find out <a href="/baby-tracker-for-couples/">how sharing works</a>.</p></div>}</section>
+</Layout>

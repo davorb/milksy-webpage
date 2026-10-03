@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppScreenshot from '../components/AppScreenshot.astro';
+import StoreLink from '../components/StoreLink.astro';
+import FAQ from '../components/FAQ.astro';
+import { landings, type Landing } from '../data/landings';
+export function getStaticPaths() { return landings.map(page => ({ params: { slug: page.slug }, props: { page } })); }
+interface Props { page: Landing }
+const { page } = Astro.props;
+---
+<Layout title={page.title} description={page.description} faqs={page.faqs}>
+ <section class="landing-hero"><div class="wrap split"><div><p class="breadcrumb"><a href="/">Milksy</a> <span aria-hidden="true"> / </span> {page.title.split(' – ')[0]}</p><p class="eyebrow">{page.eyebrow}</p><h1>{page.heading}</h1><p class="lead">{page.intro}</p><StoreLink badge/></div><AppScreenshot screen={page.screen} alt={page.alt} eager/></div></section>
+ <div class="article-body">{page.sections.map(section => <section><h2>{section.heading}</h2>{section.paragraphs.map(text => <p>{text}</p>)}{section.steps && <ol>{section.steps.map(step => <li>{step}</li>)}</ol>}</section>)}
+ <section><h2>Useful questions</h2><FAQ items={page.faqs}/></section>
+ <aside class="related" aria-label="Related features"><h2>More of the everyday picture</h2><ul>{page.related.map(slug => { const related = landings.find(item => item.slug === slug)!; return <li><a href={`/${slug}/`}>{related.title.split(' – ')[0]}</a></li>; })}</ul></aside>
+ <section><h2>A little less to remember.</h2><p>Try Milksy on iPhone or iPad. Check the App Store for current compatibility and availability.</p><StoreLink label="Download on the App Store"/></section>
+ </div>
+</Layout>

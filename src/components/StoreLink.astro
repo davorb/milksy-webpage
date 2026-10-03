@@ -1,0 +1,8 @@
+---
+import { APP_STORE } from '../data/site';
+interface Props { badge?: boolean; label?: string }
+const { badge = false, label = 'Download Milksy' } = Astro.props;
+---
+<a href={APP_STORE} class:list={['store-link', { badge, 'text-cta': !badge }]} data-cta="app-store" aria-label={badge ? 'Download Milksy on the App Store' : undefined}>
+ {badge ? <img src="/app-store-badge.svg" width="180" height="60" alt="Download on the App Store"/> : <>{label}<span aria-hidden="true">↗</span></>}
+</a>
