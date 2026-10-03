@@ -5,6 +5,16 @@ const origin=new URL(process.env.SITE_URL || 'https://milksy.app').origin;
 const app='https://apps.apple.com/us/app/milksy/id6810681675';
 const files=fs.readdirSync('dist',{recursive:true}).filter(file=>file.endsWith('.html'));
 const titles=new Set(), descriptions=new Set();
+const locales=fs.readdirSync('src/data/locales').filter(file=>file.endsWith('.json')).map(file=>file.replace(/\.json$/,''));
+const copyFor=locale=>JSON.parse(fs.readFileSync(`src/data/locales/${locale}.json`,'utf8'));
+const englishCopy=copyFor('en');
+const homeRoute=locale=>locale==='en'?'/':`/${locale}/`;
+const homeRoutes=new Set(locales.map(homeRoute));
+for(const locale of locales){
+ const copy=copyFor(locale);
+ assert.deepEqual(Object.keys(copy).sort(),Object.keys(englishCopy).sort(),`${locale}: translation keys differ`);
+ for(const [key,value] of Object.entries(copy))assert(typeof value==='string' && value.trim(),`${locale}: empty translation ${key}`);
+}
 let appLinks=0;
 for(const file of files){
  const html=fs.readFileSync(path.join('dist',file),'utf8');
@@ -15,7 +25,28 @@ for(const file of files){
  for(const key of ['og:title','og:description','og:image','og:url','twitter:card','twitter:title','twitter:description','twitter:image'])assert(html.includes(`="${key}"`),`${file}: ${key} missing`);
  assert(html.includes('app-id=6810681675'),`${file}: smart banner missing`);
  assert.equal((html.match(/<h1[ >]/g)||[]).length,1,`${file}: expected one h1`);
- assert(html.includes('lang="en"'),`${file}: language missing`);
+ const locale=homeRoutes.has(route) && route!=='/' ? route.split('/')[1] : 'en';
+ assert(html.includes(`<html lang="${locale}">`),`${file}: document language wrong`);
+ const alternates=[...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g)];
+ if(homeRoutes.has(route)){
+  assert.equal(alternates.length,locales.length+1,`${file}: alternate language count wrong`);
+  const languageURLs=new Map(alternates.map(match=>[match[1],match[2]]));
+  for(const language of locales)assert.equal(languageURLs.get(language),origin+homeRoute(language),`${file}: missing or wrong ${language} alternate`);
+  assert.equal(languageURLs.get('x-default'),origin+'/',`${file}: x-default wrong`);
+  assert(html.includes('class="language-switcher"'),`${file}: switcher missing`);
+  for(const language of locales)assert(html.includes(`href="${homeRoute(language)}" lang="${language}" hreflang="${language}"`),`${file}: switcher missing ${language}`);
+  const badge=['en','bs','sr-Latn'].includes(locale)?'/app-store-badge.svg':`/badges/${locale}.svg`;
+  assert(html.includes(`src="${badge}"`),`${file}: localized badge wrong`);
+  const screenLocale=['bs','sr-Latn'].includes(locale)?'hr':locale;
+  const screens=[...html.matchAll(/data-screen="([^"]+)" data-screen-locale="([^"]+)"/g)];
+  assert.equal(screens.length,3,`${file}: homepage screenshots incomplete`);
+  assert.deepEqual(screens.map(match=>match[1]).sort(),['timeline','today','trends']);
+  for(const screen of screens)assert.equal(screen[2],screenLocale,`${file}: ${screen[1]} screenshot language wrong`);
+  if(screenLocale!=='en')for(const screen of screens)assert(fs.existsSync(`src/assets/screenshots/${screenLocale}/${screen[1]}.png`),`${file}: source screenshot missing`);
+  const schema=JSON.parse(html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/s)[1]);
+  for(const type of ['WebSite','FAQPage'])assert(schema.some(item=>item['@type']===type && item.inLanguage===locale),`${file}: ${type} language wrong`);
+  assert.equal(schema.find(item=>item['@type']==='FAQPage').mainEntity.length,5,`${file}: FAQ incomplete`);
+ }else assert.equal(alternates.length,0,`${file}: untranslated page claims translated equivalents`);
  const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]));
  for(const match of html.matchAll(/<(a|img|source|link)\b[^>]*?\b(?:href|src)="([^"]+)"/g)){
   const ref=match[2];
@@ -62,6 +93,15 @@ for(const file of comparisonFiles){
  }
 }
 const sitemap=fs.readFileSync('dist/sitemap.xml','utf8');const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]);
+for(const entry of sitemap.matchAll(/<url>(.*?)<\/url>/gs)){
+ const url=entry[1].match(/<loc>(.*?)<\/loc>/)[1];
+ const alternates=[...entry[1].matchAll(/<xhtml:link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g)];
+ if(homeRoutes.has(new URL(url).pathname)){
+  assert.equal(alternates.length,locales.length+1,`${url}: sitemap alternate count wrong`);
+  for(const language of locales)assert(alternates.some(match=>match[1]===language && match[2]===origin+homeRoute(language)),`${url}: sitemap alternate missing ${language}`);
+  assert(alternates.some(match=>match[1]==='x-default' && match[2]===origin+'/'),`${url}: sitemap x-default wrong`);
+ }else assert.equal(alternates.length,0,`${url}: unexpected sitemap alternates`);
+}
 assert.equal(urls.length,files.length-1,'Sitemap should include all pages except 404');
 for(const url of urls){assert(url.startsWith(origin+'/'));const target=path.join('dist',new URL(url).pathname,'index.html');assert(fs.existsSync(target),`Sitemap route missing: ${url}`);}
 const robots=fs.readFileSync('dist/robots.txt','utf8');assert(robots.includes('User-agent: OAI-SearchBot\nAllow: /'));assert(robots.includes('User-agent: *\nAllow: /'));assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`));

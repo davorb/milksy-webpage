@@ -1,6 +1,12 @@
+---
+import { translations, type Locale } from '../data/localization';
+interface Props { locale?: Locale }
+const { locale = 'en' } = Astro.props;
+const copy = translations[locale];
+---
 <section id="analytics-consent" class="analytics-consent" aria-labelledby="analytics-consent-title" hidden>
- <div><h2 id="analytics-consent-title">Help improve Milksy?</h2><p>With your permission, we use PostHog to measure website visits, page engagement and link clicks. <a href="/privacy/">Read about website analytics</a>.</p></div>
- <div class="analytics-actions"><button type="button" data-analytics-choice="declined">Decline</button><button type="button" data-analytics-choice="accepted">Accept</button></div>
+ <div><h2 id="analytics-consent-title">{copy.consentTitle}</h2><p>{copy.consentText} <a href="/privacy/" hreflang="en">{copy.consentLink}{locale !== 'en' && ` (${copy.inEnglish})`}</a>.</p></div>
+ <div class="analytics-actions"><button type="button" data-analytics-choice="declined">{copy.decline}</button><button type="button" data-analytics-choice="accepted">{copy.accept}</button></div>
 </section>
 <script>
  import '../scripts/analytics';

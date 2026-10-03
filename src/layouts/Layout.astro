@@ -2,43 +2,52 @@
 import '../styles/global.css';
 import StoreLink from '../components/StoreLink.astro';
 import AnalyticsConsent from '../components/AnalyticsConsent.astro';
+import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import { locales, translations, homePath, socialLocales, type Locale } from '../data/localization';
 import { APP_STORE, type FAQ } from '../data/site';
-interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; noindex?: boolean; article?: { title: string; date: Date }; structuredData?: Record<string, unknown>[] }
-const { title, description, faqs = [], home = false, noindex = false, article, structuredData = [] } = Astro.props;
+interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; locale?: Locale; noindex?: boolean; article?: { title: string; date: Date }; structuredData?: Record<string, unknown>[] }
+const { title, description, faqs = [], home = false, locale = 'en', noindex = false, article, structuredData = [] } = Astro.props;
+const copy = translations[locale];
+const englishNote = locale === 'en' ? '' : ` (${copy.inEnglish})`;
 const origin = Astro.site!;
 const canonical = new URL(noindex ? "/404.html" : Astro.url.pathname, origin).href;
 const schema = [
  ...structuredData,
- { '@context': 'https://schema.org', '@type': 'WebSite', '@id': new URL('/#website', origin).href, name: 'Milksy', url: origin.href, description: 'Milksy is an iPhone baby tracker for breastfeeding, bottle feeds and diaper changes.', inLanguage: 'en' },
- ...(home ? [{ '@context': 'https://schema.org', '@type': ['MobileApplication', 'SoftwareApplication'], '@id': new URL('/#app', origin).href, name: 'Milksy', description, operatingSystem: 'iOS 26.5 or later; iPadOS 26.5 or later', applicationCategory: 'LifestyleApplication', url: origin.href, installUrl: APP_STORE, downloadUrl: APP_STORE, image: new URL('/app-icon.png', origin).href, sameAs: [APP_STORE] }] : []),
- ...(faqs.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map(faq => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })) }] : []),
+ { '@context': 'https://schema.org', '@type': 'WebSite', '@id': new URL(`${homePath(locale)}#website`, origin).href, name: 'Milksy', url: new URL(homePath(locale), origin).href, description: copy.description, inLanguage: locale },
+ ...(home ? [{ '@context': 'https://schema.org', '@type': ['MobileApplication', 'SoftwareApplication'], '@id': new URL('/#app', origin).href, name: 'Milksy', description, inLanguage: locale, operatingSystem: 'iOS 26.5 or later; iPadOS 26.5 or later', applicationCategory: 'LifestyleApplication', url: canonical, installUrl: APP_STORE, downloadUrl: APP_STORE, image: new URL('/app-icon.png', origin).href, sameAs: [APP_STORE] }] : []),
+ ...(faqs.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: locale, mainEntity: faqs.map(faq => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })) }] : []),
  ...(article ? [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: article.title, description, datePublished: article.date.toISOString(), mainEntityOfPage: canonical, image: new URL('/social-card.jpg', origin).href, publisher: { '@type': 'Organization', name: 'Milksy', url: origin.href } }] : []),
 ];
 ---
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
 <head>
  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
  <title>{title}</title><meta name="description" content={description}/><link rel="canonical" href={canonical}/>
+ {home && locales.map(language => <link rel="alternate" hreflang={language} href={new URL(homePath(language), origin).href}/>)}
+ {home && <link rel="alternate" hreflang="x-default" href={origin.href}/>}
  <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'}/>
  <meta property="og:type" content={article ? 'article' : 'website'}/><meta property="og:site_name" content="Milksy"/>
+ <meta property="og:locale" content={socialLocales[locale]}/>
+ {home && locales.filter(language => language !== locale).map(language => <meta property="og:locale:alternate" content={socialLocales[language]}/>)}
  <meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:url" content={canonical}/>
- <meta property="og:image" content={new URL('/social-card.jpg', origin).href}/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image:alt" content="Milksy — baby tracking without the fuss"/>
- <meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content={title}/><meta name="twitter:description" content={description}/><meta name="twitter:image" content={new URL('/social-card.jpg', origin).href}/><meta name="twitter:image:alt" content="Milksy — baby tracking without the fuss"/>
+ <meta property="og:image" content={new URL('/social-card.jpg', origin).href}/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image:alt" content={`Milksy — ${copy.eyebrow}`}/>
+ <meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content={title}/><meta name="twitter:description" content={description}/><meta name="twitter:image" content={new URL('/social-card.jpg', origin).href}/><meta name="twitter:image:alt" content={`Milksy — ${copy.eyebrow}`}/>
  <meta name="apple-itunes-app" content="app-id=6810681675"/><meta name="theme-color" content="#f2f7ff"/>
  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png"/><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
  <link rel="alternate" type="application/rss+xml" title="Milksy articles" href="/rss.xml"/>
  <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g, '\\u003c')} />
 </head>
 <body>
- <a class="skip-link" href="#main">Skip to content</a>
+ <a class="skip-link" href="#main">{copy.skip}</a>
  <header class="site-header wrap">
-  <a class="brand" href="/" aria-label="Milksy home"><img src="/app-icon-small.webp" width="38" height="38" alt=""/>Milksy</a>
-  <nav aria-label="Main navigation"><a href="/#features">Features</a><a href="/baby-tracker-for-couples/">For two</a><a href="/compare/">Compare</a><a href="/about/">About</a></nav>
-  <StoreLink label="Get Milksy"/>
+  <a class="brand" href={homePath(locale)} aria-label={copy.home}><img src="/app-icon-small.webp" width="38" height="38" alt=""/>Milksy</a>
+  <nav aria-label={copy.mainNav}><a href={`${homePath(locale)}#features`}>{copy.features}</a><a href="/baby-tracker-for-couples/" hreflang="en">{copy.forTwo}{locale !== 'en' && <small>{englishNote}</small>}</a><a href="/compare/" hreflang="en">{copy.compare}{locale !== 'en' && <small>{englishNote}</small>}</a><a href="/about/" hreflang="en">{copy.about}{locale !== 'en' && <small>{englishNote}</small>}</a></nav>
+  <StoreLink locale={locale} label={copy.getApp}/>
  </header>
+ <LanguageSwitcher locale={locale} home={home}/>
  <main id="main"><slot/></main>
- <footer class="site-footer wrap"><div><a class="brand" href="/"><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>A little less to remember.</p></div><nav aria-label="Footer navigation"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/blog/">Articles</a><a href="/compare/">Compare apps</a><a href="mailto:davor@davor.se">Contact</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>Analytics settings</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. Apple and the Apple logo are trademarks of Apple Inc. App Store is a service mark of Apple Inc.</p></footer>
- <AnalyticsConsent/>
+ <footer class="site-footer wrap"><div><a class="brand" href={homePath(locale)}><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>{copy.tagline}</p></div><nav aria-label={copy.footerNav}><a href="/about/" hreflang="en">{copy.about}{englishNote}</a><a href="/privacy/" hreflang="en">{copy.privacy}{englishNote}</a><a href="/blog/" hreflang="en">{copy.articles}{englishNote}</a><a href="/compare/" hreflang="en">{locale === 'en' ? 'Compare apps' : copy.compare}{englishNote}</a><a href="mailto:davor@davor.se">{copy.contact}</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>{copy.analyticsSettings}</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. {copy.legal}</p></footer>
+ <AnalyticsConsent locale={locale}/>
 </body>
 </html>

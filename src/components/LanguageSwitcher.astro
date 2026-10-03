@@ -1,0 +1,14 @@
+---
+import { locales, translations, languageNames, homePath, type Locale } from '../data/localization';
+interface Props { locale: Locale; home?: boolean }
+const { locale, home = false } = Astro.props;
+const copy = translations[locale];
+---
+<div class="language-bar wrap">
+ <details class="language-switcher">
+  <summary><span>{copy.language}</span><span lang={locale}>{languageNames[locale]}</span><span aria-hidden="true">⌄</span></summary>
+  <nav aria-label={copy.language}>
+   {locales.map(language => <a href={homePath(language)} lang={language} hreflang={language} aria-current={home && language === locale ? 'page' : undefined}>{languageNames[language]}{home && language === locale && <span aria-hidden="true">✓</span>}</a>)}
+  </nav>
+ </details>
+</div>

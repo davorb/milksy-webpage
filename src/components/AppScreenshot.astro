@@ -1,5 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { screenshotLocales, type Locale } from '../data/localization';
 import today from '../assets/today.png';
 import timeline from '../assets/timeline.png';
 import trends from '../assets/trends.png';
@@ -7,10 +9,14 @@ import breast from '../assets/breast.png';
 import bottle from '../assets/bottle.png';
 import diapers from '../assets/diapers.png';
 const images = { today, timeline, trends, breast, bottle, diapers };
-interface Props { screen: keyof typeof images; alt: string; eager?: boolean; class?: string }
-const { screen, alt, eager = false, class: className } = Astro.props;
+const localizedImages = import.meta.glob<ImageMetadata>('../assets/screenshots/*/*.png', { eager: true, import: 'default' });
+interface Props { screen: keyof typeof images; alt: string; eager?: boolean; class?: string; locale?: Locale }
+const { screen, alt, eager = false, class: className, locale = 'en' } = Astro.props;
+const imageLocale = screenshotLocales[locale];
+const image = imageLocale === 'en' ? images[screen] : localizedImages[`../assets/screenshots/${imageLocale}/${screen}.png`];
+if (!image) throw new Error(`Missing ${imageLocale} screenshot: ${screen}`);
 const sizes = className === "secondary-screen" ? "(max-width:680px) 193px, (max-width:900px) 190px, 228px" : className === "primary-screen" ? "(max-width:680px) 235px, (max-width:900px) 220px, 263px" : "(max-width:680px) 245px, 275px";
 ---
-<div class:list={['app-screen', className]}>
- <Picture src={images[screen]} formats={['avif','webp']} width={660} widths={[320,480,660]} sizes={sizes} alt={alt} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" />
+<div class:list={['app-screen', className]} data-screen={screen} data-screen-locale={imageLocale}>
+ <Picture src={image} formats={['avif','webp']} width={660} widths={[320,480,660]} sizes={sizes} alt={alt} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" />
 </div>

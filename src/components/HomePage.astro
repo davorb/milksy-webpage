@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppScreenshot from './AppScreenshot.astro';
+import Icon from './Icon.astro';
+import StoreLink from './StoreLink.astro';
+import FAQ from './FAQ.astro';
+import { translations, homeFAQs, type Locale } from '../data/localization';
+interface Props { locale?: Locale }
+const { locale = 'en' } = Astro.props;
+const copy = translations[locale];
+const faqs = homeFAQs(copy);
+const englishNote = locale === 'en' ? '' : ` (${copy.inEnglish})`;
+const features = [
+ { slug: 'baby-feeding-tracker', title: copy.feedingTitle, text: copy.feedingText, icon: 'feed' },
+ { slug: 'breastfeeding-tracker', title: copy.nursingTitle, text: copy.nursingText, icon: 'nursing' },
+ { slug: 'bottle-feeding-tracker', title: copy.bottleTitle, text: copy.bottleText, icon: 'bottle' },
+ { slug: 'diaper-tracker', title: copy.diaperTitle, text: copy.diaperText, icon: 'diaper' },
+ { slug: 'baby-tracker-for-couples', title: copy.sharingTitle, text: copy.sharingFeatureText, icon: 'people' },
+] as const;
+---
+<Layout home locale={locale} title={copy.title} description={copy.description} faqs={faqs}>
+ <section class="hero wrap">
+  <div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> {copy.eyebrow}</p><h1>{copy.heading}<br/><span>{copy.headingEnd}</span></h1><p class="lead">{copy.lead}</p><p class="hero-fact">{copy.fact}</p><div class="hero-actions"><StoreLink badge locale={locale}/><a class="quiet-link" href="#features">{copy.takeLook} <span aria-hidden="true">↓</span></a></div><p class="compatibility">{copy.compatibility}</p></div>
+  <figure class="hero-visual"><div class="screen-pair"><AppScreenshot screen="timeline" locale={locale} alt={copy.timelineAlt} class="secondary-screen"/><AppScreenshot screen="today" locale={locale} alt={copy.todayAlt} eager class="primary-screen"/></div><figcaption>{copy.caption}</figcaption></figure>
+ </section>
+ <div class="promise-strip wrap"><span><Icon name="clock"/> {copy.logSeconds}</span><span><Icon name="people"/> {copy.sharePartner}</span><span><Icon name="chart"/> {copy.patterns}</span></div>
+ <section class="section wrap" id="features"><div class="section-heading"><p class="eyebrow">{copy.essentialsEyebrow}</p><h2>{copy.essentialsHeading}</h2><p>{copy.essentialsText}</p></div><div class="feature-grid">{features.map(feature => <a class:list={['feature-card', feature.icon]} href={`/${feature.slug}/`} hreflang="en"><span class="icon-tile"><Icon name={feature.icon}/></span><h3>{feature.title}</h3><p>{feature.text}</p><span class="card-link">{copy.explore}{englishNote} <Icon name="arrow"/></span></a>)}</div></section>
+ <section class="timeline-section section"><div class="wrap split"><div class="screenshot-stage"><AppScreenshot screen="trends" locale={locale} alt={copy.trendsAlt}/></div><div class="section-heading"><p class="eyebrow">{copy.timelineEyebrow}</p><h2>{copy.timelineHeading}</h2><p>{copy.timelineText}</p><ul class="check-list"><li>{copy.checkTimeline}</li><li>{copy.checkTotals}</li><li>{copy.checkIntervals}</li></ul><p class="small-note">{copy.patternNote}</p><a class="text-link" href="/baby-feeding-tracker/" hreflang="en">{copy.feedLink}{englishNote} <span aria-hidden="true">→</span></a></div></div></section>
+ <section class="section wrap sharing"><div class="section-heading"><p class="eyebrow">{copy.sharingEyebrow}</p><h2>{copy.sharingHeading}<br/><span>{copy.sharingHeadingEnd}</span></h2><p>{copy.sharingText}</p><a class="text-link" href="/baby-tracker-for-couples/" hreflang="en">{copy.shareLink}{englishNote} <span aria-hidden="true">→</span></a></div><div class="sharing-note glass"><span class="icon-tile"><Icon name="people"/></span><h3>{copy.handoverHeading}</h3><p>{copy.handoverText}</p><div class="note-divider"></div><p class="small-note">{copy.cloudkitNote}</p></div></section>
+ <section class="values wrap"><div><p class="eyebrow">{copy.valuesEyebrow}</p><h2>{copy.valuesHeading}</h2><p>{copy.valuesText}</p></div><div><p class="eyebrow">{copy.privacyEyebrow}</p><h2>{copy.privacyHeading}</h2><p>{copy.privacyText}</p><a class="text-link" href="/privacy/" hreflang="en">{copy.privacyLink}{englishNote} <span aria-hidden="true">→</span></a></div></section>
+ <section class="section wrap faq-section"><div class="section-heading"><p class="eyebrow">{copy.faqEyebrow}</p><h2>{copy.faqHeading}</h2></div><FAQ items={faqs}/></section>
+ <section class="wrap home-compare"><h2>{copy.compareHeading}</h2><p>{copy.compareText}</p><a class="text-link" href="/compare/" hreflang="en">{copy.compareLink}{englishNote} <span aria-hidden="true">→</span></a></section>
+ <section class="closing wrap glass"><img src="/app-icon.webp" width="76" height="76" alt={copy.iconAlt} loading="lazy"/><h2>{copy.closingHeading}</h2><p>{copy.closingText}</p><StoreLink locale={locale} label={copy.download}/></section>
+</Layout>

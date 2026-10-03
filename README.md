@@ -67,6 +67,22 @@ Unique titles/descriptions, canonical URLs, Open Graph and X cards, a 1200×630 
 
 `robots.txt` allows regular search crawlers and explicitly allows OAI-SearchBot. GPTBot is blocked independently. Discovery and indexing remain search-engine decisions; structured data does not guarantee enhanced search results.
 
+## Localized homepages
+
+The homepage supports the same 12 languages as the current Milksy app: English, Swedish, German, Spanish, French, Italian, Dutch, Japanese, Brazilian Portuguese, Bosnian, Croatian, and Serbian in Latin script. English remains at `/`. Other homepages use `/sv/`, `/de/`, `/es/`, `/fr/`, `/it/`, `/nl/`, `/ja/`, `/pt-BR/`, `/bs/`, `/hr/`, and `/sr-Latn/`.
+
+`src/components/HomePage.astro` renders every homepage from complete, typed JSON dictionaries in `src/data/locales/`. `src/data/localization.ts` defines the supported locales, native language names, home URLs, Open Graph locale identifiers, badge paths and FAQ mapping. The shared layout localizes navigation, footer, accessible labels and analytics consent controls. Each homepage has translated titles, descriptions, image descriptions, FAQs and structured data. Translation text was checked for consistency with the existing feature claims; independent native-speaker review has not been performed. The homepage screenshots use the matching generated iOS captures for Swedish, German, Spanish, French, Italian, Dutch, Japanese, Brazilian Portuguese and Croatian. Per the owner’s preference, Bosnian and Serbian Latin use the Croatian captures. The shared social-card artwork remains English.
+
+Feature pages, comparisons, articles, About and Privacy remain English. Links to these pages on translated homepages include a translated “in English” note. The language switcher appears throughout the site and links to each language’s homepage; it does not imply that the current feature or comparison page has a translation. It uses a native HTML disclosure and ordinary links, with no JavaScript or automatic redirects.
+
+Every homepage has its own canonical URL and the complete reciprocal `hreflang` set, including itself and an English `x-default`. The sitemap lists all localized homepages and includes the same alternate-language relationships. Untranslated pages have no alternate-page declarations. Original English routes and the GitHub Pages deployment path are preserved.
+
+Apple’s unmodified localized App Store badges are stored in `public/badges/`. Their source is `https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/LOCALE?releaseDate=1464739200`, using `sv-se`, `de-de`, `es-es`, `fr-fr`, `it-it`, `nl-nl`, `ja-jp`, `pt-br` and `hr-hr`. Apple does not list Bosnian or Serbian Latin badge artwork, so these pages retain the official English graphic with translated alternative text and accessible link labels. Do not edit Apple’s artwork to translate it. Source and usage rules: https://developer.apple.com/app-store/marketing/guidelines/.
+
+To update copy, edit the corresponding JSON dictionary. Keep all keys present, including consent text, accessible labels and FAQ answers. English homepage line breaks are represented by `\n` in heading strings. To add a language, add a complete dictionary, import it into the typed registry, add its native name and Open Graph locale identifier, and provide an official badge or document its fallback. Routing, alternate links and sitemap entries derive from the registry. Before expanding supported languages, compare the registry with the app’s current string catalog and Xcode `knownRegions`.
+
+The production build verifier checks translation completeness, document languages, canonical URLs, reciprocal homepage alternates, sitemap relationships, badges, screenshot language selection, localized FAQ schema, existing internal links and metadata. Browser validation on 3 October 2026 covered all 12 homepages at 320, 390, 768 and 1440px: no horizontal overflow or broken eager images; switching languages and opening FAQs worked with JavaScript disabled. Keyboard switching, localized consent controls, and consent persistence between languages also passed. Screenshots and the report are under ignored `qa/localized-*` and `qa/localization-browser-checks.json`. These are local checks, not confirmation of deployment or search indexing.
+
 ## Analytics
 
 PostHog JavaScript SDK uses EU Cloud project 292911 and its public write-only project token from `src/scripts/analytics.ts`. No secret or deployment environment variable is needed. The shared layout includes consent controls on every page; the SDK is dynamically loaded only after acceptance in production builds. Development mode does not send analytics. Local production previews can send analytics if accepted.
@@ -123,3 +139,11 @@ Official references are linked visibly on each page and centrally in `src/data/c
 - Milksy's live store price could not be independently confirmed, so the table links users to the current listing rather than inventing a price. No competitor import is promised.
 
 Run `npm run build` to check all HTML, unique metadata, internal links, JSON-LD and sitemap coverage. Browser QA results and mobile/desktop screenshots are saved under `qa/compare-*` and `qa/comparison-browser-checks.json`. Local browser timing is diagnostic only; it is not field Core Web Vitals evidence.
+
+### Refresh localized app screenshots
+
+Run `npm run import:screenshots` to copy the generated iPhone captures from the sibling iOS project’s `AppStoreScreenshots/source/LOCALE/iphone/`. To use another checkout, run `npm run import:screenshots -- /absolute/path/to/AppStoreScreenshots/source`. The importer validates available sets before copying the unmodified `today.png`, `timeline.png` and `trends.png` files to `src/assets/screenshots/LOCALE/`. The App Store campaign compositions are not used in the website’s screen frames.
+
+`AppScreenshot.astro` selects these assets using the homepage locale and produces responsive AVIF/WebP images with PNG fallbacks through Astro’s existing image pipeline. Missing mapped captures fail the build rather than silently showing the wrong language. English pages retain the existing English assets. The explicit screenshot language map is `screenshotLocales` in `src/data/localization.ts`; Bosnian and Serbian Latin intentionally map to Croatian. If dedicated captures become available later, update that mapping and their captions along with importing the images.
+
+The 27 localized PNG sources were verified byte-for-byte against the iOS project’s generated captures on 3 October 2026. Rebuild after refreshing assets and inspect the corresponding homepage previews.
