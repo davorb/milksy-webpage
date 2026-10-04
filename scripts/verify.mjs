@@ -15,6 +15,7 @@ for(const locale of locales){
  assert.deepEqual(Object.keys(copy).sort(),Object.keys(englishCopy).sort(),`${locale}: translation keys differ`);
  for(const [key,value] of Object.entries(copy))assert(typeof value==='string' && value.trim(),`${locale}: empty translation ${key}`);
 }
+const links = new Map();
 let appLinks=0;
 for(const file of files){
  const html=fs.readFileSync(path.join('dist',file),'utf8');
@@ -47,6 +48,13 @@ for(const file of files){
   for(const type of ['WebSite','FAQPage'])assert(schema.some(item=>item['@type']===type && item.inLanguage===locale),`${file}: ${type} language wrong`);
   assert.equal(schema.find(item=>item['@type']==='FAQPage').mainEntity.length,5,`${file}: FAQ incomplete`);
  }else assert.equal(alternates.length,0,`${file}: untranslated page claims translated equivalents`);
+ assert(!/<meta[^>]+(?:name="robots"|name="googlebot")[^>]+content="[^"]*noindex/i.test(html),`${file}: indexing blocked`);
+ assert(!/http-equiv="refresh"/i.test(html),`${file}: HTML redirect found`);
+ for(const image of html.matchAll(/<img\b[^>]*>/g)){
+  assert(/\balt="[^"]*"/.test(image[0]),`${file}: image alternative missing`);
+  assert(/\bwidth="[1-9]\d*"/.test(image[0]) && /\bheight="[1-9]\d*"/.test(image[0]),`${file}: image dimensions missing`);
+ }
+ links.set(route,[...html.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map(match=>new URL(match[1],origin+route)).filter(url=>url.origin===origin).map(url=>url.pathname));
  const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]));
  for(const match of html.matchAll(/<(a|img|source|link)\b[^>]*?\b(?:href|src)="([^"]+)"/g)){
   const ref=match[2];
@@ -63,6 +71,8 @@ for(const file of files){
  for(const match of html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/gs)){
   const data=JSON.parse(match[1]);assert(Array.isArray(data));
   for(const item of data){assert.equal(item['@context'],'https://schema.org');assert(item['@type']);
+   if(item['@type']==='BreadcrumbList')assert(html.includes('aria-label="Breadcrumb"'),`${file}: visible breadcrumbs missing`);
+   if(item['@type']==='BlogPosting')assert(item.author?.url===`${origin}/about/#davor`,`${file}: article author missing`);
    if(item['@type']==='FAQPage')for(const q of item.mainEntity){assert(html.includes(q.name.replace(/&/g,'&amp;')),`${file}: FAQ question is not visible`);assert(q.acceptedAnswer.text);}
   }
  }
@@ -92,6 +102,10 @@ for(const file of comparisonFiles){
   assert(html.includes(`href="${route}"`),`${file}: related comparison missing: ${route}`);
  }
 }
+const reachable = new Set(['/']);
+const queue = ['/'];
+for(const route of queue)for(const target of links.get(route) || [])if(links.has(target) && !reachable.has(target)){reachable.add(target);queue.push(target);}
+for(const route of links.keys())if(route!=='/404.html')assert(reachable.has(route),`Orphan page: ${route}`);
 const sitemap=fs.readFileSync('dist/sitemap.xml','utf8');const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]);
 for(const entry of sitemap.matchAll(/<url>(.*?)<\/url>/gs)){
  const url=entry[1].match(/<loc>(.*?)<\/loc>/)[1];

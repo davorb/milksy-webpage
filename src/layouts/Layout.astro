@@ -5,18 +5,27 @@ import AnalyticsConsent from '../components/AnalyticsConsent.astro';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import { locales, translations, homePath, socialLocales, type Locale } from '../data/localization';
 import { APP_STORE, type FAQ } from '../data/site';
-interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; locale?: Locale; noindex?: boolean; article?: { title: string; date: Date }; structuredData?: Record<string, unknown>[] }
-const { title, description, faqs = [], home = false, locale = 'en', noindex = false, article, structuredData = [] } = Astro.props;
+interface Props { title: string; description: string; faqs?: FAQ[]; home?: boolean; locale?: Locale; errorPage?: boolean; article?: { title: string; date: Date }; structuredData?: Record<string, unknown>[] }
+const { title, description, faqs = [], home = false, locale = 'en', errorPage = false, article, structuredData = [] } = Astro.props;
 const copy = translations[locale];
 const englishNote = locale === 'en' ? '' : ` (${copy.inEnglish})`;
 const origin = Astro.site!;
-const canonical = new URL(noindex ? "/404.html" : Astro.url.pathname, origin).href;
+const canonical = new URL(errorPage ? "/404.html" : Astro.url.pathname, origin).href;
+const pageName = title.split(' – ')[0];
+const breadcrumbs = !home && !errorPage ? [
+ { name: 'Milksy', path: '/' },
+ ...(Astro.url.pathname.startsWith('/blog/') && Astro.url.pathname !== '/blog/' ? [{ name: 'Articles', path: '/blog/' }] : []),
+ ...(Astro.url.pathname.startsWith('/compare/') && Astro.url.pathname !== '/compare/' ? [{ name: 'Compare', path: '/compare/' }] : []),
+ { name: pageName, path: Astro.url.pathname },
+] : [];
+const author = { '@type': 'Person', '@id': new URL('/about/#davor', origin).href, name: 'Davor', url: new URL('/about/#davor', origin).href, sameAs: ['https://davor.se/'] };
 const schema = [
+ ...(breadcrumbs.length ? [{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbs.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, item: new URL(item.path, origin).href })) }] : []),
  ...structuredData,
  { '@context': 'https://schema.org', '@type': 'WebSite', '@id': new URL(`${homePath(locale)}#website`, origin).href, name: 'Milksy', url: new URL(homePath(locale), origin).href, description: copy.description, inLanguage: locale },
  ...(home ? [{ '@context': 'https://schema.org', '@type': ['MobileApplication', 'SoftwareApplication'], '@id': new URL('/#app', origin).href, name: 'Milksy', description, inLanguage: locale, operatingSystem: 'iOS 26.5 or later; iPadOS 26.5 or later', applicationCategory: 'LifestyleApplication', url: canonical, installUrl: APP_STORE, downloadUrl: APP_STORE, image: new URL('/app-icon.png', origin).href, sameAs: [APP_STORE] }] : []),
  ...(faqs.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: locale, mainEntity: faqs.map(faq => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })) }] : []),
- ...(article ? [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: article.title, description, datePublished: article.date.toISOString(), mainEntityOfPage: canonical, image: new URL('/social-card.jpg', origin).href, publisher: { '@type': 'Organization', name: 'Milksy', url: origin.href } }] : []),
+ ...(article ? [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: article.title, description, author, datePublished: article.date.toISOString(), mainEntityOfPage: canonical, image: new URL('/social-card.jpg', origin).href, publisher: { '@type': 'Organization', name: 'Milksy', url: origin.href } }] : []),
 ];
 ---
 <!doctype html>
@@ -26,7 +35,7 @@ const schema = [
  <title>{title}</title><meta name="description" content={description}/><link rel="canonical" href={canonical}/>
  {home && locales.map(language => <link rel="alternate" hreflang={language} href={new URL(homePath(language), origin).href}/>)}
  {home && <link rel="alternate" hreflang="x-default" href={origin.href}/>}
- <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'}/>
+ <meta name="robots" content="index, follow"/>
  <meta property="og:type" content={article ? 'article' : 'website'}/><meta property="og:site_name" content="Milksy"/>
  <meta property="og:locale" content={socialLocales[locale]}/>
  {home && locales.filter(language => language !== locale).map(language => <meta property="og:locale:alternate" content={socialLocales[language]}/>)}
@@ -46,7 +55,10 @@ const schema = [
   <StoreLink locale={locale} label={copy.getApp}/>
  </header>
  <LanguageSwitcher locale={locale} home={home}/>
- <main id="main"><slot/></main>
+ <main id="main">
+ {breadcrumbs.length > 0 && <nav class="breadcrumb wrap page-breadcrumb" aria-label="Breadcrumb"><ol>{breadcrumbs.map((item, index) => <li>{index < breadcrumbs.length - 1 ? <a href={item.path}>{item.name}</a> : <span aria-current="page">{item.name}</span>}</li>)}</ol></nav>}
+ <slot/>
+ </main>
  <footer class="site-footer wrap"><div><a class="brand" href={homePath(locale)}><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>{copy.tagline}</p></div><nav aria-label={copy.footerNav}><a href="/about/" hreflang="en">{copy.about}{englishNote}</a><a href="/privacy/" hreflang="en">{copy.privacy}{englishNote}</a><a href="/blog/" hreflang="en">{copy.articles}{englishNote}</a><a href="/compare/" hreflang="en">{locale === 'en' ? 'Compare apps' : copy.compare}{englishNote}</a><a href="mailto:davor@davor.se">{copy.contact}</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>{copy.analyticsSettings}</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. {copy.legal}</p></footer>
  <AnalyticsConsent locale={locale}/>
 </body>

@@ -7,4 +7,4 @@ interface Props { post: CollectionEntry<'blog'> }
 const { post } = Astro.props;
 const { Content } = await render(post);
 ---
-<Layout title={`${post.data.title} – Milksy`} description={post.data.description} article={{ title: post.data.title, date: post.data.publishedAt }}><article class="article-body"><p class="breadcrumb"><a href="/blog/">Milksy articles</a></p><h1>{post.data.title}</h1><p class="article-date"><time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString('en', { timeZone: 'UTC', year:'numeric', month:'long', day:'numeric' })}</time></p><Content/></article></Layout>
+<Layout title={`${post.data.title} – Milksy`} description={post.data.description} article={{ title: post.data.title, date: post.data.publishedAt }}><article class="article-body"><h1>{post.data.title}</h1><p class="article-date"><time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString('en', { timeZone: 'UTC', year:'numeric', month:'long', day:'numeric' })}</time></p><p>By <a href="/about/#davor">Davor, Milksy developer</a></p><Content/></article></Layout>
