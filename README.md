@@ -140,10 +140,18 @@ Official references are linked visibly on each page and centrally in `src/data/c
 
 Run `npm run build` to check all HTML, unique metadata, internal links, JSON-LD and sitemap coverage. Browser QA results and mobile/desktop screenshots are saved under `qa/compare-*` and `qa/comparison-browser-checks.json`. Local browser timing is diagnostic only; it is not field Core Web Vitals evidence.
 
-### Refresh localized app screenshots
+### Refresh app screenshots
 
-Run `npm run import:screenshots` to copy the generated iPhone captures from the sibling iOS project’s `AppStoreScreenshots/source/LOCALE/iphone/`. To use another checkout, run `npm run import:screenshots -- /absolute/path/to/AppStoreScreenshots/source`. The importer validates available sets before copying the unmodified `today.png`, `timeline.png` and `trends.png` files to `src/assets/screenshots/LOCALE/`. The App Store campaign compositions are not used in the website’s screen frames.
+Run `npm run sync:screenshots` to refresh the website from the sibling iOS project's `AppStoreScreenshots/source/`. It copies six English captures (`today`, `timeline`, `trends`, `breast`, `bottle`, `diapers`) from `source/iphone/` into `src/assets/`, and three homepage captures (`today`, `timeline`, `trends`) per available language from `source/LOCALE/iphone/` into `src/assets/screenshots/LOCALE/`. It validates every available set before writing, copies PNGs unchanged, and skips identical files. Missing localized directories retain existing assets; missing English captures or incomplete available sets stop the import. App Store campaign compositions are not used.
 
-`AppScreenshot.astro` selects these assets using the homepage locale and produces responsive AVIF/WebP images with PNG fallbacks through Astro’s existing image pipeline. Missing mapped captures fail the build rather than silently showing the wrong language. English pages retain the existing English assets. The explicit screenshot language map is `screenshotLocales` in `src/data/localization.ts`; Bosnian and Serbian Latin intentionally map to Croatian. If dedicated captures become available later, update that mapping and their captions along with importing the images.
+```sh
+npm run sync:screenshots -- --dry-run
+npm run sync:screenshots
+npm run build
+```
 
-The 27 localized PNG sources were verified byte-for-byte against the iOS project’s generated captures on 3 October 2026. Rebuild after refreshing assets and inspect the corresponding homepage previews.
+For another checkout, use `npm run sync:screenshots -- /absolute/path/to/AppStoreScreenshots/source` (optionally with `--dry-run`). Default paths are resolved relative to the script, so direct invocation also works from another directory. `npm run import:screenshots` remains a compatible alias. Sync is an explicit refresh, not a background watcher or part of the production build, which does not require the Xcode checkout.
+
+To regenerate captures first, run `MILKSY_LOCALES="en sv de es fr it nl ja pt-BR hr" bash AppStoreScreenshots/scripts/generate.sh` from the Milksy project root, then run the website sync command. Generation requires Xcode, the configured simulators and the screenshot pipeline's Python dependencies; see the iOS project's `AppStoreScreenshots/USAGE.md`.
+
+`AppScreenshot.astro` selects these assets using the homepage locale and produces responsive AVIF/WebP images with PNG fallbacks through Astro's image pipeline. Missing mapped captures fail the build. The screenshot language map is `screenshotLocales` in `src/data/localization.ts`; Bosnian and Serbian Latin intentionally map to Croatian. If dedicated captures become available, update that mapping and their captions along with importing the images.
