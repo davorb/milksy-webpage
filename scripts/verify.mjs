@@ -81,7 +81,7 @@ for(const file of files){
  const scriptSource=clientScripts[0][1].match(/src="([^"]+)"/)?.[1];
  assert(scriptSource?.startsWith('/_astro/'),`${file}: analytics script must be a local bundle`);
  assert(fs.existsSync(path.join('dist',scriptSource)),`${file}: analytics script missing`);
- assert(html.includes('id="analytics-consent"') && html.includes('id="analytics-settings"'),`${file}: analytics controls missing`);
+ assert(!html.includes('id="analytics-consent"') && !html.includes('id="analytics-settings"'),`${file}: obsolete analytics controls`);
  assert(!html.includes('Writing a Milksy article'),`${file}: draft leaked`);
 }
 // Comparison content must stay crawlable and linked as new competitors are added.

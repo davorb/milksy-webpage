@@ -1,7 +1,6 @@
 ---
 import '../styles/global.css';
 import StoreLink from '../components/StoreLink.astro';
-import AnalyticsConsent from '../components/AnalyticsConsent.astro';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import { locales, translations, homePath, socialLocales, type Locale } from '../data/localization';
 import { APP_STORE, type FAQ } from '../data/site';
@@ -59,7 +58,9 @@ const schema = [
  {breadcrumbs.length > 0 && <nav class="breadcrumb wrap page-breadcrumb" aria-label="Breadcrumb"><ol>{breadcrumbs.map((item, index) => <li>{index < breadcrumbs.length - 1 ? <a href={item.path}>{item.name}</a> : <span aria-current="page">{item.name}</span>}</li>)}</ol></nav>}
  <slot/>
  </main>
- <footer class="site-footer wrap"><div><a class="brand" href={homePath(locale)}><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>{copy.tagline}</p></div><nav aria-label={copy.footerNav}><a href="/about/" hreflang="en">{copy.about}{englishNote}</a><a href="/privacy/" hreflang="en">{copy.privacy}{englishNote}</a><a href="/blog/" hreflang="en">{copy.articles}{englishNote}</a><a href="/compare/" hreflang="en">{locale === 'en' ? 'Compare apps' : copy.compare}{englishNote}</a><a href="mailto:davor@davor.se">{copy.contact}</a><button type="button" id="analytics-settings" class="analytics-settings" hidden>{copy.analyticsSettings}</button></nav><p class="legal">© {new Date().getFullYear()} Milksy. {copy.legal}</p></footer>
- <AnalyticsConsent locale={locale}/>
+ <footer class="site-footer wrap"><div><a class="brand" href={homePath(locale)}><img src="/app-icon-small.webp" width="30" height="30" alt=""/>Milksy</a><p>{copy.tagline}</p></div><nav aria-label={copy.footerNav}><a href="/about/" hreflang="en">{copy.about}{englishNote}</a><a href="/privacy/" hreflang="en">{copy.privacy}{englishNote}</a><a href="/blog/" hreflang="en">{copy.articles}{englishNote}</a><a href="/compare/" hreflang="en">{locale === 'en' ? 'Compare apps' : copy.compare}{englishNote}</a><a href="mailto:davor@davor.se">{copy.contact}</a></nav><p class="legal">© {new Date().getFullYear()} Milksy. {copy.legal}</p></footer>
+ <script>
+  import '../scripts/analytics';
+ </script>
 </body>
 </html>

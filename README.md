@@ -1,6 +1,6 @@
 # Milksy website
 
-Static Astro + TypeScript website for https://milksy.app. Static HTML and CSS with consent-based PostHog website analytics. No remote fonts or UI frameworks.
+Static Astro + TypeScript website for https://milksy.app. Static HTML and CSS with PostHog website analytics. No remote fonts or UI frameworks.
 
 ## Run and deploy
 
@@ -15,7 +15,7 @@ npm run preview
 
 Upload `dist/` to a static host. Configure the host to serve directory indexes and `404.html` for missing pages. Set the custom domain to `milksy.app`, enable HTTPS, and redirect alternate domains to it. No server runtime or secrets are required. The domain is already configured; an alternate origin can be built with `SITE_URL=https://example.com npm run build`. Root-path hosting is intentional. Subpath deployments need additional base-path work.
 
-`npm run build` runs TypeScript/Astro diagnostics, generates the site, and verifies metadata, JSON-LD syntax, canonical URLs, sitemap, robots rules, internal links, App Store links, draft exclusion, and the presence of the analytics entry script and consent controls. `npm run verify` repeats the generated-output checks.
+`npm run build` runs TypeScript/Astro diagnostics, generates the site, and verifies metadata, JSON-LD syntax, canonical URLs, sitemap, robots rules, internal links, App Store links, draft exclusion, and the presence of the analytics entry script and absence of banner controls. `npm run verify` repeats the generated-output checks.
 
 ## Pages
 
@@ -71,7 +71,7 @@ Unique titles/descriptions, canonical URLs, Open Graph and X cards, a 1200×630 
 
 The homepage supports the same 12 languages as the current Milksy app: English, Swedish, German, Spanish, French, Italian, Dutch, Japanese, Brazilian Portuguese, Bosnian, Croatian, and Serbian in Latin script. English remains at `/`. Other homepages use `/sv/`, `/de/`, `/es/`, `/fr/`, `/it/`, `/nl/`, `/ja/`, `/pt-BR/`, `/bs/`, `/hr/`, and `/sr-Latn/`.
 
-`src/components/HomePage.astro` renders every homepage from complete, typed JSON dictionaries in `src/data/locales/`. `src/data/localization.ts` defines the supported locales, native language names, home URLs, Open Graph locale identifiers, badge paths and FAQ mapping. The shared layout localizes navigation, footer, accessible labels and analytics consent controls. Each homepage has translated titles, descriptions, image descriptions, FAQs and structured data. Translation text was checked for consistency with the existing feature claims; independent native-speaker review has not been performed. The homepage screenshots use the matching generated iOS captures for Swedish, German, Spanish, French, Italian, Dutch, Japanese, Brazilian Portuguese and Croatian. Per the owner’s preference, Bosnian and Serbian Latin use the Croatian captures. The shared social-card artwork remains English.
+`src/components/HomePage.astro` renders every homepage from complete, typed JSON dictionaries in `src/data/locales/`. `src/data/localization.ts` defines the supported locales, native language names, home URLs, Open Graph locale identifiers, badge paths and FAQ mapping. The shared layout localizes navigation, footer, accessible labels. Each homepage has translated titles, descriptions, image descriptions, FAQs and structured data. Translation text was checked for consistency with the existing feature claims; independent native-speaker review has not been performed. The homepage screenshots use the matching generated iOS captures for Swedish, German, Spanish, French, Italian, Dutch, Japanese, Brazilian Portuguese and Croatian. Per the owner’s preference, Bosnian and Serbian Latin use the Croatian captures. The shared social-card artwork remains English.
 
 Feature pages, comparisons, articles, About and Privacy remain English. Links to these pages on translated homepages include a translated “in English” note. The language switcher appears throughout the site and links to each language’s homepage; it does not imply that the current feature or comparison page has a translation. It uses a native HTML disclosure and ordinary links, with no JavaScript or automatic redirects.
 
@@ -79,17 +79,17 @@ Every homepage has its own canonical URL and the complete reciprocal `hreflang` 
 
 Apple’s unmodified localized App Store badges are stored in `public/badges/`. Their source is `https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/LOCALE?releaseDate=1464739200`, using `sv-se`, `de-de`, `es-es`, `fr-fr`, `it-it`, `nl-nl`, `ja-jp`, `pt-br` and `hr-hr`. Apple does not list Bosnian or Serbian Latin badge artwork, so these pages retain the official English graphic with translated alternative text and accessible link labels. Do not edit Apple’s artwork to translate it. Source and usage rules: https://developer.apple.com/app-store/marketing/guidelines/.
 
-To update copy, edit the corresponding JSON dictionary. Keep all keys present, including consent text, accessible labels and FAQ answers. English homepage line breaks are represented by `\n` in heading strings. To add a language, add a complete dictionary, import it into the typed registry, add its native name and Open Graph locale identifier, and provide an official badge or document its fallback. Routing, alternate links and sitemap entries derive from the registry. Before expanding supported languages, compare the registry with the app’s current string catalog and Xcode `knownRegions`.
+To update copy, edit the corresponding JSON dictionary. Keep all keys present, including accessible labels and FAQ answers. English homepage line breaks are represented by `\n` in heading strings. To add a language, add a complete dictionary, import it into the typed registry, add its native name and Open Graph locale identifier, and provide an official badge or document its fallback. Routing, alternate links and sitemap entries derive from the registry. Before expanding supported languages, compare the registry with the app’s current string catalog and Xcode `knownRegions`.
 
 The production build verifier checks translation completeness, document languages, canonical URLs, reciprocal homepage alternates, sitemap relationships, badges, screenshot language selection, localized FAQ schema, existing internal links and metadata. Browser validation on 3 October 2026 covered all 12 homepages at 320, 390, 768 and 1440px: no horizontal overflow or broken eager images; switching languages and opening FAQs worked with JavaScript disabled. Keyboard switching, localized consent controls, and consent persistence between languages also passed. Screenshots and the report are under ignored `qa/localized-*` and `qa/localization-browser-checks.json`. These are local checks, not confirmation of deployment or search indexing.
 
 ## Analytics
 
-PostHog JavaScript SDK uses EU Cloud project 292911 and its public write-only project token from `src/scripts/analytics.ts`. No secret or deployment environment variable is needed. The shared layout includes consent controls on every page; the SDK is dynamically loaded only after acceptance in production builds. Development mode does not send analytics. Local production previews can send analytics if accepted.
+PostHog JavaScript SDK uses EU Cloud project 292911 and its public write-only project token from `src/scripts/analytics.ts`. The shared layout loads standard PostHog analytics automatically in production without a request banner. Development mode does not send analytics. Local production previews send analytics.
 
-Events: Standard PostHog page views, page engagement and automatic interaction capture, plus `app_store_clicked` for links with `data-cta="app-store"` (page path and link label). Uses PostHog’s recommended `2026-05-30` defaults. Session recording and surveys are disabled for this marketing site. No identify calls are made. PostHog uses local storage; a separate `milksy-analytics-consent` preference remembers Accept/Decline. Footer Analytics settings allows withdrawing consent and clears PostHog persistence. Without JavaScript the website works and analytics remain disabled. The website section of `/privacy/` explains this integration; the application's published policy is unchanged.
+Events: Standard PostHog page views, page engagement and automatic interaction capture, plus `app_store_clicked` for links with `data-cta="app-store"` (page path and link label). Uses PostHog’s recommended `2026-05-30` defaults. Session recording and surveys are disabled. No identify calls are made. PostHog uses local storage to recognise repeat visits. Initialization clears any former SDK opt-out. Without JavaScript the website works and analytics remain disabled. The website section of `/privacy/` explains this integration; the application's published policy is unchanged.
 
-After deploying, accept analytics and check PostHog Live events for a page view and an App Store click. Events from users who decline or block analytics will not appear. SDK/configuration reference: https://posthog.com/docs/libraries/js.
+After deploying, check PostHog Live events for a page view and an App Store click without interacting with a banner. Visitors who block analytics will not appear. SDK/configuration reference: https://posthog.com/docs/libraries/js.
 
 ## Validation on 3 October 2026
 
